@@ -9,9 +9,12 @@ import com.proj.tickets.repositories.EventRepository;
 import com.proj.tickets.repositories.UserRepository;
 import com.proj.tickets.services.EventService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,18 +29,22 @@ public class EventServiceImpl implements EventService {
        User organizer = userRepository.findById(organizerId)
                .orElseThrow(()->new UserNotFoundException(String.format("user with id %s not found",organizerId)));
 
+        Event eventToCreate=new Event();
+
         List<TicketType> ticketTypesToCreate = event.getTicketTypes().stream().map(
                 ticketType -> {
+
                     TicketType ticketTypeToCreate = new TicketType();
                     ticketTypeToCreate.setName(ticketType.getName());
                     ticketTypeToCreate.setPrice(ticketType.getPrice());
                     ticketTypeToCreate.setTotalAvailable(ticketType.getTotalAvailable());
                     ticketTypeToCreate.setDescription(ticketType.getDescription());
 //                    ticketTypeToCreate.setEvent(null);
+                    ticketTypeToCreate.setEvent(eventToCreate);
                     return ticketTypeToCreate;
                 }).toList();
 
-        Event eventToCreate=new Event();
+
        eventToCreate.setName(event.getName());
        eventToCreate.setStart(event.getStart());
        eventToCreate.setEnd(event.getEnd());
@@ -49,5 +56,15 @@ public class EventServiceImpl implements EventService {
        eventToCreate.setTicketTypes(ticketTypesToCreate);
 
        return eventRepository.save(eventToCreate);
+    }
+
+    @Override
+    public Page<Event> listEventsForOrganizer(UUID organizerId, Pageable pageable) {
+      return eventRepository.findByOrganizerId(organizerId,pageable);
+    }
+
+    @Override
+    public Optional<Event> getEventForOrganizer(UUID organizerId, UUID id) {
+        return eventRepository.findByIdAndOrganizerId(id,organizerId);
     }
 }
