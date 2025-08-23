@@ -13,8 +13,5 @@ public class CreateTicketTypeRequest {
     private String description;
     private Double price;
     private Integer totalAvailable;
-//    private String status;
-//    private String validationMethod;
-//    private String validationValue;
 }
 
